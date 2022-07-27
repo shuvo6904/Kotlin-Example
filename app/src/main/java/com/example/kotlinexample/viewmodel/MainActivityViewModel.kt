@@ -1,37 +1,34 @@
 package com.example.kotlinexample.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kotlinexample.model.RecyclerList
+import com.example.kotlinexample.model.OnlineShopPublishModel
+import com.example.kotlinexample.network.ApiService
 import com.example.kotlinexample.network.RetroInstance
-import com.example.kotlinexample.network.RetroService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class MainActivityViewModel : ViewModel() {
+class MainActivityViewModel() : ViewModel() {
 
-    lateinit var recyclerListLiveData: MutableLiveData<RecyclerList>
+    fun onlineShopPublish(token : String, shopId : Int) : LiveData<OnlineShopPublishModel>{
 
-    init {
-        recyclerListLiveData = MutableLiveData()
-    }
-
-    fun getRecyclerListObserver(): MutableLiveData<RecyclerList> {
-        return recyclerListLiveData
-    }
-
-    fun makeApiCall() {
+        val responseBody = MutableLiveData<OnlineShopPublishModel>()
 
         viewModelScope.launch(Dispatchers.IO) {
 
+            val retroInstance = RetroInstance.getRetroInstance().create(ApiService::class.java)
 
-            val retroInstance = RetroInstance.getRetroInstance().create(RetroService::class.java)
-            val response = retroInstance.getDataFromApi("ny")
-            recyclerListLiveData.postValue(response)
+            withContext(Dispatchers.Main){
+                responseBody.value = retroInstance.onlineShopPublish(token, shopId).body()
+            }
+
 
 
         }
-    }
 
+        return responseBody
+    }
 }
